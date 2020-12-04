@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.dao.PersonMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.example.demo.pojo.Person">
+        <id column="id" property="id" />
+        <result column="name" property="name" />
+        <result column="age" property="age" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, name, age
+    </sql>
+
+    <select id="getByPersonId" resultMap="BaseResultMap">
+        select <include refid="Base_Column_List"/> from person where 1=1
+        <if test="id!=null and id!=''">
+            and id=#{id}
+        </if>
+    </select>
+
+    <select id="getByIdOrName" resultMap="BaseResultMap">
+        select <include refid="Base_Column_List"/> from person
+        <where>
+            <choose>
+                <when test="id!=null and id!=''">
+                    and id=#{id}
+                </when>
+                <when test="name!=null and name!=''">
+                    and name=#{name}
+                </when>
+                <otherwise>
+                    and id=1
+                </otherwise>
+            </choose>
+        </where>
+    </select>
+
+    <select id="getByRangeId" resultMap="BaseResultMap">
+        select <include refid="Base_Column_List"/> from person where id in
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+
+    <update id="testUpdate">
+        update person
+            <set>
+                <if test="name!=null and name!=''">
+                    name=#{name},
+                </if>
+
+                <if test="age!=null and age!=''">
+                    age=#{age}
+                </if>
+            </set>
+        where id=1
+    </update>
+
+    <select id="testString" resultMap="BaseResultMap">
+        select <include refid="Base_Column_List"/> from person where 1=1
+        <if test="name=='瓜田李下 1'">
+            and id=1
+        </if> <!--都可以使用-->
+
+        <if test="name=='瓜田李下 2'.toString()">
+            and id=2
+        </if> <!--都可以使用-->
+    </select>
+
+    <select id="testBind" resultMap="BaseResultMap">
+        <bind name="name_pattern" value="'%'+name+'%'"/>
+        select <include refid="Base_Column_List"/> from person
+        <where>
+            <if test="name!=null and name!=''">
+                and name like #{name_pattern}
+            </if>
+            <!--等同于 and name like concat("%",#{name},"%")-->
+        </where>
+    </select>
+</mapper>
